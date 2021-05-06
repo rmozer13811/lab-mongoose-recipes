@@ -1,27 +1,61 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const Recipe = require("./models/Recipe"); // Import of the model Recipe from './models/Recipe'
+const data = require("./data.js"); // Import of the data from './data.js'
 
-// Import of the model Recipe from './models/Recipe.model.js'
-const Recipe = require('./models/Recipe.model');
-// Import of the data from './data.json'
-const data = require('./data');
-
-const MONGODB_URI = 'mongodb://localhost:27017/recipe-app';
-
-// Connection to the database "recipe-app"
+// Connection to the database "recipeApp"
 mongoose
-  .connect(MONGODB_URI, {
-    useCreateIndex: true,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(self => {
-    console.log(`Connected to the database: "${self.connection.name}"`);
-    // Before adding any recipes to the database, let's remove all existing ones
-    return Recipe.deleteMany()
-  })
+  .connect("mongodb://localhost/recipeApp", { useNewUrlParser: true })
   .then(() => {
-    // Run your code here, after you have insured that the connection was made
+    console.log("Connected to Mongo!");
   })
-  .catch(error => {
-    console.error('Error connecting to the database', error);
+  .catch((err) => {
+    console.error("Error connecting to mongo", err);
+  });
+
+const newRecipe = {
+  title: "Shrimp Risotto",
+  level: "Amateur Chef",
+  ingredients: ["rice", "shrimp", "olive oil", "white wine", "onion", "basil"],
+  cuisine: "italian",
+  dishType: "Dish",
+  image:
+    "https://tmbidigitalassetsazure.blob.core.windows.net/secure/RMS/attachments/37/1200x1200/Hearty-Shrimp-Risotto_exps134312_THHC2238742B09_19_5bC_RMS.jpg",
+  duration: 30,
+  creator: "Julia Ramos",
+};
+
+const oneRecipe = Recipe.create(newRecipe);
+// .then(recipe => { console.log('The recipe is saved and its title is: ', recipe.title) })
+// .catch(err => { console.log('An error happened:', err) });
+
+const allRecipes = Recipe.insertMany(data);
+// .then(recipes => {
+//   console.log('The recipes are saved and its title are:');
+//   recipes.forEach(recipe => console.log(recipe.title));
+// })
+// .catch(err => { console.log('An error happened:', err) });
+
+const update = Recipe.updateOne(
+  { title: "Rigatoni alla Genovese" },
+  { duration: 100 }
+);
+// .then(recipe => { console.log('The recipe has been updated') })
+// .catch(err => { console.log('An error happened:', err) });
+
+const deleteCake = Recipe.deleteOne({ title: "Carrot Cake" });
+// .then(recipe => { console.log('The recipe has been deleted') })
+// .catch(err => { console.log('An error happened:', err) });
+
+Promise.all([oneRecipe, allRecipes, update, deleteCake])
+  .then((response) => {
+    console.log("The recipe is saved and its title is: ", response[0].title);
+    console.log("The recipes are saved and its title are:");
+    response[1].forEach((recipe) => console.log(recipe.title));
+    console.log(response[2]);
+    console.log(`The recipe has been updated`);
+    console.log(`The recipe has been deleted`);
+    mongoose.connection.close();
+  })
+  .catch((err) => {
+    console.log("An error happened:", err);
   });
